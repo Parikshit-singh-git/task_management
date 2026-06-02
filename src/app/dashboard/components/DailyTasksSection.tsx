@@ -23,7 +23,11 @@ const priorityBadge: Record<Priority, string> = {
     critical: 'badge badge-critical',
 };
 
-export default function DailyTasksSection() {
+interface DailyTasksSectionProps {
+    showAddButton?: boolean;
+}
+
+export default function DailyTasksSection({ showAddButton = true }: DailyTasksSectionProps) {
     const { user, supabase } = useAuth();
     const [tasks, setTasks] = useState<DailyTask[]>([]);
     const [loading, setLoading] = useState(true);
@@ -110,13 +114,15 @@ export default function DailyTasksSection() {
                         {doneCount}/{total} completed
                     </p>
                 </div>
-                <button
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="btn-primary text-xs py-1.5 px-3"
-                >
-                    <Plus size={13} />
-                    Add
-                </button>
+                {showAddButton && (
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all duration-200"
+                        title="Add Task"
+                    >
+                        <Plus size={16} />
+                    </button>
+                )}
             </div>
 
             {/* Progress bar */}

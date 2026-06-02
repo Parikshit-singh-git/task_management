@@ -25,7 +25,11 @@ const getPriorityColor = (priority: Priority) => {
     }
 };
 
-export default function UpcomingExamsTable() {
+interface UpcomingExamsTableProps {
+    showAddButton?: boolean;
+}
+
+export default function UpcomingExamsTable({ showAddButton = true }: UpcomingExamsTableProps) {
     const { user, supabase } = useAuth();
     
     const [exams, setExams] = useState<Exam[]>([]);
@@ -130,13 +134,15 @@ export default function UpcomingExamsTable() {
                             <p className="text-xs text-zinc-500 mt-0.5">Your next milestones</p>
                         </div>
                     </div>
-                    <button
-                        onClick={() => setIsAddModalOpen(true)}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all duration-200"
-                        title="Add Exam"
-                    >
-                        <Plus size={16} />
-                    </button>
+                    {showAddButton && (
+                        <button
+                            onClick={() => setIsAddModalOpen(true)}
+                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all duration-200"
+                            title="Add Exam"
+                        >
+                            <Plus size={16} />
+                        </button>
+                    )}
                 </div>
 
                 <div className="relative">

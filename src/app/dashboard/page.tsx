@@ -14,10 +14,10 @@ export default function DashboardPage() {
                 <KpiBentoGrid />
                 <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
                     <div className="xl:col-span-2">
-                        <DailyTasksSection />
+                        <DailyTasksSection showAddButton={false} />
                     </div>
                     <div className="xl:col-span-3">
-                        <UpcomingExamsTable />
+                        <UpcomingExamsTable showAddButton={false} />
                     </div>
                 </div>
                 <PendingBacklogTable />

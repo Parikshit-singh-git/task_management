@@ -1,10 +1,11 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import AppLogo from '@/components/ui/applogo';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import UserAvatar from '@/components/UserAvatar';
 import {
   LayoutDashboard,
   CalendarDays,
@@ -36,8 +37,9 @@ interface SidebarProps {
 
 export default function Sidebar({ currentPath }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, signOut, supabase } = useAuth();
   const router = useRouter();
+  const [examsCount, setExamsCount] = useState<number>(0);
 
   const handleSignOut = async () => {
     try {
@@ -48,6 +50,54 @@ export default function Sidebar({ currentPath }: SidebarProps) {
       toast.error('Sign out failed', { description: error.message });
     }
   };
+
+  useEffect(() => {
+    if (!user || !supabase) return;
+
+    const fetchExamsCount = async () => {
+      try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const { data, error } = await supabase
+          .from('exams')
+          .select('id, exam_date')
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        if (data) {
+          const upcoming = data.filter((d: any) => {
+            if (!d.exam_date) return false;
+            const examDateObj = new Date(d.exam_date);
+            examDateObj.setHours(0, 0, 0, 0);
+            return examDateObj >= today;
+          });
+          setExamsCount(upcoming.length);
+        }
+      } catch (err) {
+        console.error('Error fetching exams count for sidebar:', err);
+      }
+    };
+
+    fetchExamsCount();
+
+    // Listen to changes in the exams table for real-time updates
+    const channel = supabase
+      .channel('sidebar-exams-count')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'exams', filter: `user_id=eq.${user.id}` },
+        () => {
+          fetchExamsCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, supabase]);
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
   const displayEmail = user?.email || '';
@@ -69,6 +119,7 @@ export default function Sidebar({ currentPath }: SidebarProps) {
       <nav className="flex-1 p-2 space-y-0.5 mt-1">
         {navItems.map((item) => {
           const isActive = currentPath === item.href;
+          const badgeCount = item.href === '/calendar' ? examsCount : item.badge;
           return (
             <Link
               key={`nav-${item.href}`}
@@ -78,12 +129,12 @@ export default function Sidebar({ currentPath }: SidebarProps) {
             >
               <span className="shrink-0">{item.icon}</span>
               {!collapsed && <span className="flex-1">{item.label}</span>}
-              {!collapsed && item.badge ? (
+              {!collapsed && badgeCount ? (
                 <span className="ml-auto bg-amber-500/20 text-amber-400 text-xs font-semibold px-1.5 py-0.5 rounded-md border border-amber-500/20">
-                  {item.badge}
+                  {badgeCount}
                 </span>
               ) : null}
-              {collapsed && item.badge ? (
+              {collapsed && badgeCount ? (
                 <span className="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full" />
               ) : null}
             </Link>
@@ -136,9 +187,12 @@ export default function Sidebar({ currentPath }: SidebarProps) {
         </Link>
 
         <div className={`flex items-center gap-2.5 px-3 py-2 rounded-lg ${collapsed ? 'justify-center px-0' : ''}`}>
-          <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
-            <User size={14} className="text-emerald-400" />
-          </div>
+          <UserAvatar
+            avatarUrl={user?.user_metadata?.avatar_url}
+            displayName={displayName}
+            className="w-7 h-7"
+            iconSize={14}
+          />
           {!collapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-zinc-200 truncate">{displayName}</p>

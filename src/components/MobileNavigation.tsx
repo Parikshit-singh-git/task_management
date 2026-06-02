@@ -17,6 +17,8 @@ import {
 import AppLogo from '@/components/ui/applogo';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import UserAvatar from '@/components/UserAvatar';
+
 
 interface MobileNavProps {
   currentPath: string;
@@ -66,9 +68,12 @@ export default function MobileNavigation({ currentPath }: MobileNavProps) {
           <AppLogo size={24} />
           <span className="ml-2 font-semibold text-zinc-100 text-sm tracking-tight">LifeTrackr</span>
         </div>
-        <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 relative z-10">
-          <User size={14} className="text-emerald-400" />
-        </div>
+        <UserAvatar
+          avatarUrl={user?.user_metadata?.avatar_url}
+          displayName={displayName}
+          className="w-8 h-8 relative z-10"
+          iconSize={16}
+        />
       </header>
 
       {/* Drawer Overlay */}
@@ -116,9 +121,12 @@ export default function MobileNavigation({ currentPath }: MobileNavProps) {
 
         <div className="p-4 border-t border-zinc-800 mt-auto">
           <div className="flex items-center gap-3 px-2 py-3">
-             <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
-                <User size={14} className="text-emerald-400" />
-             </div>
+             <UserAvatar
+               avatarUrl={user?.user_metadata?.avatar_url}
+               displayName={displayName}
+               className="w-8 h-8"
+               iconSize={16}
+             />
              <div className="flex-1 min-w-0">
                <p className="text-xs font-semibold text-zinc-100 truncate">{displayName}</p>
                <p className="text-[10px] text-zinc-500 truncate">{displayEmail}</p>
